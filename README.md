@@ -1,9 +1,10 @@
-# lsah-admin-help-search
-LSAH Admin Help Search (Multisite)
+# LSAH Admin Help Search
 
 **A WordPress plugin that adds a quick help search box directly in the admin menu.**  
 Configurable search URL, full search term logging, and built-in statistics page. Fully compatible with multisite networks.
 
+[![WordPress Version](https://img.shields.io/wordpress/plugin/v/lsah-admin-help-search?label=Tested%20up%20to)](https://wordpress.org/plugins/)
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/License-GPLv2%20or%20later-green)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![Contributors](https://img.shields.io/badge/Contributor-lenasterg-orange)](https://github.com/lenasterg)
 
