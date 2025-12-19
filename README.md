@@ -71,7 +71,7 @@ In a network-wide table named `{prefix}lsah_admin_searches` (using your database
 Yes! Visit **Network Admin → Settings → Help Search Statistics** (or **Settings → Help Search Statistics** on single-site) for a full searchable and sortable overview.
 
 ### Is the plugin secure?
-Absolutely. It includes:
+I think so. It includes:
 - Strict URL validation (client-side JavaScript + server-side PHP)
 - Safe form handling via enqueued JS
 - Nonce verification for AJAX logging
