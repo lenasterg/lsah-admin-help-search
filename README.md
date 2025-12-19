@@ -49,8 +49,6 @@ The "Help for…" search box will appear in the admin menu for all administrator
 
 ## Screenshots
 
-(If you have screenshots, place them in an `assets` folder and reference them here.)
-
 1. The search box in the admin menu  
    ![Search box in admin menu](assets/screenshot-1.png)
 
