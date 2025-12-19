@@ -22,8 +22,8 @@ Configurable search URL, full search term logging, and built-in statistics page.
   - Full search URL
   - Count
   - First and last searched dates
-- **Statistics page** with searchable and sortable table of all recorded searches (Network Admin → Settings → Help Search Statistics).
-- Fully secure:
+- **Statistics page** with a table of all recorded searches (Network Admin → Settings → Help Search Statistics).
+- Secure:
   - Strict client-side + server-side URL validation
   - Safe form action assignment via enqueued JavaScript
   - Nonce-protected AJAX logging
@@ -31,7 +31,7 @@ Configurable search URL, full search term logging, and built-in statistics page.
 - Translation-ready (`lsah-admin-help-search` text domain).
 - Clean, standards-compliant code with separate CSS/JS assets.
 
-Ideal for multisite networks with a centralized help system (e.g., internal wiki, custom manual, Google Custom Search, Algolia, etc.).
+Ideal for multisite networks with a centralized help system (e.g., internal wiki, custom manual, WordPress.org,  Google Custom Search, Algolia, etc.).
 
 ## Installation
 
