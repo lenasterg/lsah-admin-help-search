@@ -1,0 +1,23 @@
+#toplevel_page_lsah-admin-help-search > a {
+    pointer-events: none;
+    cursor: default;
+}
+
+.lsah-admin-search-form {
+    padding: 8px 10px;
+}
+
+.lsah-admin-search-form input[type="search"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+}
+
+.lsah-admin-search-form input[type="search"]:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
