@@ -105,17 +105,19 @@ function lsah_show_notice_set_url() {
         : admin_url('options-general.php?page=lsah-help-search-settings');
 
     ?>
-    <div class="notice notice-warning is-dismissible">
-        <p>
-            <?php
-            printf(
-                /* translators: %s: Settings page URL */
-                __('LSAH: Please configure the Help Search Action URL in <a href="%s">Settings → Help Search</a>.', 'lsah-admin-help-search'),
-                esc_url($settings_url)
-            );
-            ?>
-        </p>
-    </div>
+   <div class="notice notice-warning is-dismissible">
+    <p>
+        <?php
+        /* translators: %s: Settings page URL */
+        $settings_text = __('Settings → Help Search', 'lsah-admin-help-search');
+        printf(
+            /* translators: %1$s: message text, %2$s: link */
+            esc_html__('LSAH: Please configure the Help Search Action URL in %1$s.', 'lsah-admin-help-search'),
+            '<a href="' . esc_url($settings_url) . '">' . esc_html($settings_text) . '</a>'
+        );
+        ?>
+    </p>
+</div>
     <?php
 }
 
