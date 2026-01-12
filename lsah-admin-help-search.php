@@ -3,7 +3,7 @@
  * Plugin Name: LSAH Admin Help Search (Multisite)
  * Description: Adds a quick help search box in the admin menu. Configurable search URL, logs all searches, fully multisite-compatible.
  * Version: 1.0.0
- * Author: LS
+ * Author: lenasterg
  * Text Domain: lsah-admin-help-search
  * Domain Path: /languages
  * Network: true
