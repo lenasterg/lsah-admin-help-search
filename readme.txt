@@ -1,6 +1,5 @@
 === LSAH Admin Help Search (Multisite) ===
 Contributors: lenasterg
-Donate link: https://example.com/donate
 Tags: admin, search, help, multisite, network, logging, statistics, dashboard, documentation
 Requires at least: 5.5
 Tested up to: 6.9
