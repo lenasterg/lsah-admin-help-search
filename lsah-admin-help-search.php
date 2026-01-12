@@ -5,10 +5,11 @@
  * Version: 1.0.0
  * Author: lenasterg
  * Text Domain: lsah-admin-help-search
- * Domain Path: /languages
- * Network: true
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Domain Path: /languages
+ * Network: true
+ *
  * @package LSAH_Admin_Help_Search
  */
 
@@ -69,29 +70,6 @@ function lsah_activate_plugin() {
     }
 }
 register_activation_hook(__FILE__, 'lsah_activate_plugin');
-
-
-
-
-/**
- * ------------------------------------------------------------------------
- * Load plugin translations
- * ------------------------------------------------------------------------
- */
-
-/**
- * Loads the plugin text domain for translation.
- *
- * @return void
- */
-function lsah_load_textdomain() {
-    load_plugin_textdomain(
-        'lsah-admin-help-search',
-        false,
-        dirname(plugin_basename(__FILE__)) . '/languages'
-    );
-}
-add_action('plugins_loaded', 'lsah_load_textdomain');
 
 /**
  * ------------------------------------------------------------------------
