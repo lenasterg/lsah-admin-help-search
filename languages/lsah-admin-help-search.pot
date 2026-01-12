@@ -1,0 +1,139 @@
+# Copyright (C) 2026 LS
+# This file is distributed under the same license as the LSAH Admin Help Search (Multisite) plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: LSAH Admin Help Search (Multisite) 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lsah-admin-help-search\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-01-12T16:54:39+02:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: lsah-admin-help-search\n"
+
+#. Plugin Name of the plugin
+#: lsah-admin-help-search.php
+msgid "LSAH Admin Help Search (Multisite)"
+msgstr ""
+
+#. Description of the plugin
+#: lsah-admin-help-search.php
+msgid "Adds a quick help search box in the admin menu. Configurable search URL, logs all searches, fully multisite-compatible."
+msgstr ""
+
+#. Author of the plugin
+#: lsah-admin-help-search.php
+msgid "LS"
+msgstr ""
+
+#. translators: %s: Settings page URL
+#: lsah-admin-help-search.php:134
+msgid "LSAH: Please configure the Help Search Action URL in <a href=\"%s\">Settings → Help Search</a>."
+msgstr ""
+
+#: lsah-admin-help-search.php:173
+#: lsah-admin-help-search.php:317
+#: lsah-admin-help-search.php:339
+msgid "Help Search"
+msgstr ""
+
+#: lsah-admin-help-search.php:174
+#: lsah-admin-help-search.php:210
+msgid "Help for…"
+msgstr ""
+
+#: lsah-admin-help-search.php:211
+msgid "Search the help manual"
+msgstr ""
+
+#: lsah-admin-help-search.php:212
+msgid "Help Search URL not configured."
+msgstr ""
+
+#: lsah-admin-help-search.php:316
+#: lsah-admin-help-search.php:338
+#: lsah-admin-help-search.php:397
+msgid "Help Search Settings"
+msgstr ""
+
+#: lsah-admin-help-search.php:358
+#: lsah-admin-help-search.php:362
+#: lsah-admin-help-search.php:525
+#: lsah-admin-help-search.php:528
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: lsah-admin-help-search.php:370
+#: lsah-admin-help-search.php:438
+msgid "Please enter a URL."
+msgstr ""
+
+#: lsah-admin-help-search.php:374
+#: lsah-admin-help-search.php:443
+msgid "The URL must start with http:// or https://."
+msgstr ""
+
+#: lsah-admin-help-search.php:377
+#: lsah-admin-help-search.php:450
+msgid "Please enter a valid URL."
+msgstr ""
+
+#: lsah-admin-help-search.php:381
+msgid "Settings saved."
+msgstr ""
+
+#: lsah-admin-help-search.php:402
+msgid "Search Action URL"
+msgstr ""
+
+#: lsah-admin-help-search.php:407
+msgid "Examples:"
+msgstr ""
+
+#: lsah-admin-help-search.php:415
+msgid "Save Changes"
+msgstr ""
+
+#: lsah-admin-help-search.php:501
+#: lsah-admin-help-search.php:502
+#: lsah-admin-help-search.php:514
+#: lsah-admin-help-search.php:515
+#: lsah-admin-help-search.php:539
+msgid "Help Search Statistics"
+msgstr ""
+
+#: lsah-admin-help-search.php:540
+msgid "Overview of all recorded help search terms."
+msgstr ""
+
+#: lsah-admin-help-search.php:544
+msgid "Search terms"
+msgstr ""
+
+#: lsah-admin-help-search.php:574
+#: lsah-admin-help-search.php:587
+msgid "Search Term"
+msgstr ""
+
+#: lsah-admin-help-search.php:575
+msgid "Search Terms"
+msgstr ""
+
+#: lsah-admin-help-search.php:588
+msgid "Count"
+msgstr ""
+
+#: lsah-admin-help-search.php:589
+msgid "First Searched"
+msgstr ""
+
+#: lsah-admin-help-search.php:590
+msgid "Last Searched"
+msgstr ""
+
+#: lsah-admin-help-search.php:595
+msgid "Site URL"
+msgstr ""
