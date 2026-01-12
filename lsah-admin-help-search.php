@@ -183,13 +183,13 @@ function lsah_admin_assets() {
     );
 
     // Localize data for JavaScript
-    $lsah_data = array(
-        'actionUrl'     => esc_url($action_url),
-        'nonce'         => wp_create_nonce('lsah_log_admin_help_search'),
-        'placeholder'   => __('Help for…', 'lsah-admin-help-search'),
-        'ariaLabel'     => __('Search the help manual', 'lsah-admin-help-search'),
-        'notConfigured' => __('Help Search URL not configured.', 'lsah-admin-help-search'),
-    );
+  $lsah_data = array(
+    'actionUrl'     => esc_url($action_url),
+    'nonce'         => wp_create_nonce('lsah_log_admin_help_search'),
+    'placeholder'   => esc_js(__('Help for...', 'lsah-admin-help-search')),
+    'ariaLabel'     => esc_js(__('Search the help manual', 'lsah-admin-help-search')),
+    'notConfigured' => esc_js(__('Help Search URL not configured.', 'lsah-admin-help-search')),
+);
 
     // Enqueue JS
     wp_enqueue_script(
@@ -229,7 +229,8 @@ function lsah_log_admin_help_search() {
 
     $table_name = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
     $blog_id    = get_current_blog_id();
-    $search     = sanitize_text_field($_POST['search'] ?? '');
+    $search     = sanitize_text_field(wp_unslash($_POST['search']) ?? '');
+	
     
     if (!$search) {
         wp_die();
@@ -584,7 +585,7 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
             global $wpdb;
             $table = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
 
-            $search = isset($_REQUEST['s']) ? sanitize_text_field($_REQUEST['s']) : '';
+            $search = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : '';
 
             if (!empty($search)) {
                 $like  = '%' . $wpdb->esc_like($search) . '%';
