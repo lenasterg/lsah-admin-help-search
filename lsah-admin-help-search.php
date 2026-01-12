@@ -151,14 +151,14 @@ function lsah_add_admin_menu() {
     }
 
     add_menu_page(
-        __('Help Search', 'lsah-admin-help-search'),
-        __('Help for…', 'lsah-admin-help-search'),
-        'read',
-        'lsah-admin-help-search',
-        '__return_null',
-        'dashicons-search',
-        1
-    );
+       esc_html__('Help Search', 'lsah-admin-help-search'),
+       esc_html__('Help for...', 'lsah-admin-help-search'),
+       'read',
+       'lsah-admin-help-search',
+       '__return_null',
+       'dashicons-search',
+      1
+	);
 }
 add_action('admin_menu', 'lsah_add_admin_menu');
 
@@ -295,8 +295,8 @@ add_action('wp_ajax_lsah_log_admin_help_search', 'lsah_log_admin_help_search');
 function lsah_add_network_settings() {
     add_submenu_page(
         'settings.php',
-        __('Help Search Settings', 'lsah-admin-help-search'),
-        __('Help Search', 'lsah-admin-help-search'),
+        esc_html__('Help Search Settings', 'lsah-admin-help-search'),
+        esc_html__('Help Search', 'lsah-admin-help-search'),
         'manage_network',
         'lsah-help-search-settings',
         'lsah_render_settings_page'
@@ -317,8 +317,8 @@ function lsah_add_single_site_settings() {
     }
 
     add_options_page(
-        __('Help Search Settings', 'lsah-admin-help-search'),
-        __('Help Search', 'lsah-admin-help-search'),
+        esc_html__('Help Search Settings', 'lsah-admin-help-search'),
+        esc_html__('Help Search', 'lsah-admin-help-search'),
         'manage_options',
         'lsah-help-search-settings',
         'lsah_render_settings_page' // Χρησιμοποιούμε την ίδια συνάρτηση rendering
