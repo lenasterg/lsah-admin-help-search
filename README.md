@@ -51,13 +51,13 @@ The "Help for…" search box will appear in the admin menu for all administrator
 ## Screenshots
 
 1. The search box in the admin menu  
-   ![Search box in admin menu](assets/screenshot-1.png)
+   ![Search box in admin menu](screenshot-1.png)
 
 2. Settings page in Network Admin  
-   ![Settings page](assets/screenshot-2.png)
+   ![Settings page](screenshot-2.png)
 
 3. Statistics page with recorded searches  
-   ![Statistics page](assets/screenshot-3.png)
+   ![Statistics page](screenshot-3.png)
 
 ## Frequently Asked Questions
 
