@@ -13,7 +13,7 @@
  * @package LSAH_Admin_Help_Search
  */
 
-if (!defined('ABSPATH')) {
+if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
@@ -44,6 +44,8 @@ function lsah_activate_plugin() {
     $table_name      = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
     $charset_collate = $wpdb->get_charset_collate();
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     blog_id BIGINT UNSIGNED NOT NULL,
@@ -57,7 +59,8 @@ function lsah_activate_plugin() {
     INDEX idx_blog_id (blog_id),
     INDEX idx_search_term (search_term)
 ) $charset_collate;";
-
+// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
@@ -536,7 +539,6 @@ function lsah_render_statistics_page() {
 if (!class_exists('WP_List_Table')) {
     require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
-
 if (!class_exists('LSAH_Search_Statistics_Table')) {
 
     /**
@@ -581,26 +583,158 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
         }
 
         /**
+         * Define sortable columns
+         *
+         * @return array Sortable columns
+         */
+        public function get_sortable_columns() {
+            $columns = [
+                'search_term'    => ['search_term', true],
+                'search_count'   => ['search_count', false],
+                'first_searched' => ['first_searched', false],
+                'last_searched'  => ['last_searched', false],
+            ];
+
+            // blog_url is a derived column – sorted at PHP level
+            if (is_multisite()) {
+                $columns['blog_url'] = ['blog_url', false];
+            }
+
+            return $columns;
+        }
+
+        /**
          * Prepare items for display
+         *
+         * Handles search, sorting and pagination.
+         *
+         * @since 1.0.0
+         * @return void
          */
         public function prepare_items() {
             global $wpdb;
-            $table = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
 
-            $search = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : '';
-
-            if (!empty($search)) {
-                $like  = '%' . $wpdb->esc_like($search) . '%';
-                $query = $wpdb->prepare(
-                    "SELECT * FROM $table WHERE search_term LIKE %s ORDER BY last_searched DESC",
-                    $like
-                );
-            } else {
-                $query = "SELECT * FROM $table ORDER BY last_searched DESC";
+            // Extra hardening: capability check
+            if ( ! current_user_can( is_multisite() ? 'manage_network' : 'manage_options' ) ) {
+                return;
             }
 
+            $table = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
+
+            // Search input
+            $search = isset($_REQUEST['s'])
+                ? sanitize_text_field(wp_unslash($_REQUEST['s']))
+                : '';
+
+            // Pagination
+            $per_page     = 10;
+            $current_page = max(1, (int) $this->get_pagenum());
+            $offset       = ($current_page - 1) * $per_page;
+
+            // Sorting
+            $orderby = isset($_REQUEST['orderby'])
+                ? sanitize_key($_REQUEST['orderby'])
+                : 'last_searched';
+
+            $order = (isset($_REQUEST['order']) && 'asc' === strtolower($_REQUEST['order']))
+                ? 'ASC'
+                : 'DESC';
+
+            // Columns that physically exist in the database
+            $db_sortable = [
+                'search_term',
+                'search_count',
+                'first_searched',
+                'last_searched',
+            ];
+
+            // Flag for PHP-level sorting of derived column
+            $php_sort_blog_url = (is_multisite() && 'blog_url' === $orderby);
+
+            // WHERE clause
+            if (!empty($search)) {
+                $like = '%' . $wpdb->esc_like($search) . '%';
+                $where_sql = $wpdb->prepare('WHERE search_term LIKE %s', $like);
+            } else {
+                $where_sql = '';
+            }
+
+            // ORDER BY clause (SQL only if column exists)
+            if (in_array($orderby, $db_sortable, true)) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Orderby and order are whitelisted.
+                $order_by_sql = "ORDER BY {$orderby} {$order}";
+            } else {
+                $order_by_sql = 'ORDER BY last_searched DESC';
+            }
+
+            // Main query
+            $query = $wpdb->prepare(
+                "SELECT * FROM {$table}
+                 {$where_sql}
+                 {$order_by_sql}
+                 LIMIT %d OFFSET %d",
+                $per_page,
+                $offset
+            );
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL query prepared earlier; dynamic parts are sanitized or strictly whitelisted.
             $this->items = $wpdb->get_results($query, ARRAY_A);
-            $this->_column_headers = [$this->get_columns(), [], []];
+
+            /*
+             * PHP-level sorting for blog_url (derived column).
+             * Applied only to the current page for performance reasons.
+             */
+            if ($php_sort_blog_url && !empty($this->items)) {
+                static $blog_urls = [];
+
+                foreach ($this->items as &$item) {
+                    if (!isset($blog_urls[$item['blog_id']])) {
+                        $blog_urls[$item['blog_id']] = get_site_url($item['blog_id']);
+                    }
+                    $item['_blog_url_sort'] = $blog_urls[$item['blog_id']];
+                }
+                unset($item);
+
+                usort(
+                    $this->items,
+                    function ($a, $b) use ($order) {
+                        return ('ASC' === $order)
+                            ? strcasecmp($a['_blog_url_sort'], $b['_blog_url_sort'])
+                            : strcasecmp($b['_blog_url_sort'], $a['_blog_url_sort']);
+                    }
+                );
+
+                // Cleanup temporary field
+                foreach ($this->items as &$item) {
+                    unset($item['_blog_url_sort']);
+                }
+                unset($item);
+            }
+
+            // Total items for pagination
+            if (!empty($search)) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No user input, table name from constant.
+                $total_items = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$table} WHERE search_term LIKE %s",
+                        $like
+                    )
+                );
+            } else {
+                $total_items = (int) $wpdb->get_var(
+                    "SELECT COUNT(*) FROM {$table}"
+                );
+            }
+
+            $this->set_pagination_args([
+                'total_items' => $total_items,
+                'per_page'    => $per_page,
+            ]);
+
+            $this->_column_headers = [
+                $this->get_columns(),
+                [],
+                $this->get_sortable_columns(),
+            ];
         }
 
         /**
@@ -615,14 +749,15 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
 
             switch ($column_name) {
                 case 'search_term':
-		    if (!empty($item['search_url'])) {
-			return sprintf(
-			    '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
-			    esc_url($item['search_url']),
-			    esc_html($item['search_term'])
-			);
-		    }
-		    return esc_html($item['search_term']);
+                    if (!empty($item['search_url'])) {
+                        return sprintf(
+                            '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+                            esc_url($item['search_url']),
+                            esc_html($item['search_term'])
+                        );
+                    }
+                    return esc_html($item['search_term']);
+
                 case 'search_count':
                     return esc_html($item[$column_name]);
 
@@ -635,53 +770,15 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
 
                 case 'blog_url':
                     // Μόνο για multisite
+                    // Note: Direct DB access avoided – using get_site_url() cache
                     if (is_multisite() && isset($item['blog_id'])) {
-                        // Άμεση ανάκτηση από wp_blogs για ταχύτητα
-                        $blog_table = $wpdb->base_prefix . 'blogs';
-                        $url = $wpdb->get_var(
-                            $wpdb->prepare(
-                                "SELECT domain FROM $blog_table WHERE blog_id = %d",
-                                $item['blog_id']
-                            )
-                        );
-
-                        if ($url) {
-                            $path = $wpdb->get_var(
-                                $wpdb->prepare(
-                                    "SELECT path FROM $blog_table WHERE blog_id = %d",
-                                    $item['blog_id']
-                                )
-                            );
-                            return esc_url('https://' . $url . $path);
-                        } else {
-                            return esc_html($item['blog_id']);
-                        }
+                        return esc_url(get_site_url($item['blog_id']));
                     }
                     return '';
 
                 default:
                     return '';
             }
-        }
-
-        /**
-         * Define sortable columns
-         *
-         * @return array Sortable columns
-         */
-        public function get_sortable_columns() {
-            $columns = [
-                'search_term'    => ['search_term', true],
-                'search_count'   => ['search_count', false],
-                'first_searched' => ['first_searched', false],
-                'last_searched'  => ['last_searched', false],
-            ];
-
-            if (is_multisite()) {
-                $columns['blog_url'] = ['blog_url', false];
-            }
-
-            return $columns;
         }
     }
 }
