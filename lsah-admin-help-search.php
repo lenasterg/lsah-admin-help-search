@@ -675,7 +675,8 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
 
             // Σε multisite, προσθέτουμε στήλη για Site URL
             if (is_multisite()) {
-                $columns = ['blog_url' => __('Site URL', 'lsah-admin-help-search')] + $columns;
+				$columns = array_slice( $columns, 0, 1 ) + ['blog_url' => __('Site URL', 'lsah-admin-help-search')]+ $columns;
+              //  $columns = ['blog_url' => __('Site URL', 'lsah-admin-help-search')] + $columns;
             }
 
             return $columns;
