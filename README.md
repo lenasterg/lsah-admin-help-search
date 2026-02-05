@@ -16,6 +16,7 @@ Configurable search URL, full search term logging, and built-in statistics page.
 
 - Works on **all sites** in a multisite network and on single-site installations.
 - Configurable search action URL (set by Network Admin or site admin).
+- (New in v1.1): Captures search queries from both the WordPress Dashboard and directly from the frontend of your designated Manual/Help site (if in same multisite).
 - Logs every search in a network-wide database table (`{prefix}lsah_admin_searches`) including:
   - Site ID (`blog_id`)
   - Search term
@@ -23,13 +24,8 @@ Configurable search URL, full search term logging, and built-in statistics page.
   - Count
   - First and last searched dates
 - **Statistics page** with a table of all recorded searches (Network Admin → Settings → Help Search Statistics).
-- Secure:
-  - Strict client-side + server-side URL validation
-  - Safe form action assignment via enqueued JavaScript
-  - Nonce-protected AJAX logging
-  - Proper sanitization and escaping throughout
+- Optimized Performance: Features "fail-early" logic (3-character minimum) and multibyte support (Greek/UTF-8) to ensure high-quality data and zero site slowdown.
 - Translation-ready (`lsah-admin-help-search` text domain).
-- Clean, standards-compliant code with separate CSS/JS assets.
 
 Ideal for multisite networks with a centralized help system (e.g., internal wiki, custom manual, WordPress.org,  Google Custom Search, Algolia, etc.).
 
@@ -78,6 +74,12 @@ I think so. It includes:
 - Full input sanitization and output escaping
 
 ## Changelog
+###1.1.0
+- NEW: Added tracking for searches performed directly on the manual's frontend.
+- IMPROVEMENT: Refactored core logging into a central function for consistency.
+- IMPROVEMENT: Implemented a smart de-duplication mechanism (5-second window).
+- IMPROVEMENT: Added 3-character minimum requirement for search logging (multibyte/Greek supported).
+
 
 ### 1.0.0
 - Initial public release
