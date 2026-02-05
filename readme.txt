@@ -2,26 +2,27 @@
 Contributors: lenasterg
 Tags: admin, help, multisite, dashboard, documentation
 Requires at least: 5.5
-Tested up to: 6.9
-Stable tag: 1.0.0
+Tested up to: 6.9.1
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Adds a quick help search box directly in the admin menu, with configurable search URL and search term logging. Fully multisite compatible.
+Adds a search field within the WordPress dashboard for instant access to user manuals and logs queries to help administrators improve documentation. Fully multisite compatible.
 
 == Description ==
 
 **LSAH Admin Help Search** adds a convenient search field right in the WordPress admin menu (position 1, immediately after the Dashboard), allowing administrators to quickly search your custom help documentation or knowledge base.
 
-### Key Features:
-- Works on **all sites** in a multisite network.
-- Configurable search action URL set by the Network Administrator (or site admin on single-site installs).
-- Logs all searches in a network-wide database table (including blog_id, search term, count, first/last searched dates, and full search URL).
-- **New in v1.0.0**: Dedicated statistics page under Network Admin → Settings → Help Search Statistics (with term search, sorting, and site URL display on multisite).
-- Fully secure: strict URL validation (client-side + server-side), safe form action via JavaScript, nonce-protected AJAX logging.
-- Translation-ready (text domain: lsah-admin-help-search).
-- Clean, standards-compliant code with separate enqueued CSS/JS assets.
+**Key Features:**
+* **Embedded Dashboard Search:** Adds a search box directly to the admin sidebar for seamless access to help articles.
+* **Integrated Manual Tracking:** Since version 1.1. Now captures search queries performed directly on the frontend of the site designated as the User Manual (when hosted within the same multisite network).
+* **Smart De-duplication:** Features an intelligent mechanism to prevent double entries caused by redirects from the dashboard or page refreshes, using a 5-second "look-back" window.
+* **Data Integrity & Security:** High-level sanitization of search terms and use of prepared SQL statements to ensure database security.
+* **Performance Optimized:** Uses targeted hooks (`template_redirect`) and "fail-early" logic (length checks) to ensure zero impact on site speed across large networks.
+* **Multibyte Support:** Correctly handles Greek and other non-Latin characters for accurate search term logging.
+* **Translation-ready (text domain: lsah-admin-help-search).
+
 
 Perfect for multisite networks with a centralized help system (e.g., internal knowledge base, custom manual, external search engines like Google Custom Search, Algolia, etc.).
 
@@ -65,6 +66,11 @@ Yes. The plugin includes:
 3. The Help Search Statistics page showing recorded searches.
 
 == Changelog ==
+= 1.1.0 =
+* NEW: Added tracking for searches performed directly on the manual's frontend (if in same multisite).
+* IMPROVEMENT: Implemented a smart de-duplication mechanism to filter out redundant logs from redirects.
+* IMPROVEMENT: Added a 3-character minimum length requirement for logging (supporting multibyte/Greek characters).
+* IMPROVEMENT: Refactored code into a core logging function for better maintainability and consistency.
 
 = 1.0.0 =
 * Initial public release
