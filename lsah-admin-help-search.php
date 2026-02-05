@@ -291,7 +291,7 @@ function lsah_save_search_query( $search, $blog_id ) {
     if ( $is_duplicate ) {
         return;
     }
-    $search_url = get_option( LSAH_OPTION_ACTION_URL ) . urlencode( $search );
+    $search_url = get_site_option( LSAH_OPTION_ACTION_URL ) . urlencode( $search );
       
     // Check if the term already exists for this specific blog.
     $row = $wpdb->get_row(
