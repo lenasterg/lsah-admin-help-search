@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: LSAH Admin Help Search (Multisite)
- * Description: Adds a quick help search box in the admin menu. Configurable search URL, logs all searches, fully multisite-compatible.
- * Version: 1.0.0
+ * Description: Adds a search field within the WordPress dashboard for instant access to user manuals and logs queries to help administrators improve documentation. Fully multisite compatible.
+ * Version: 1.1.0
  * Author: lenasterg
  * Text Domain: lsah-admin-help-search
  * License:           GPL-2.0-or-later
@@ -218,33 +218,82 @@ add_action('admin_enqueue_scripts', 'lsah_admin_assets');
 /**
  * Handles AJAX request to log an admin help search term.
  *
- * Logs the search in the network-wide table, incrementing count if the term already exists.
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- * @return void
+ ** Intercepts and logs search requests originating from the WordPress Admin sidebar.
+ * This function monitors the admin-side search form. When a user submits a 
+ * "Help for..." query, it sanitizes the input, records the search via  lsah_save_search_query().
+ * * @since 1.0.0
+ * @version 1.1.0 Refactored to use the central lsah_save_search_query() function.
+ * * @return void
+ * 
+ * @global wpdb $wpdb
  */
 function lsah_log_admin_help_search() {
     if (!is_user_logged_in()) {
         wp_die();
     }
-
     check_ajax_referer('lsah_log_admin_help_search', 'security', true);
 
-    global $wpdb;
-
-    $table_name = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
     $blog_id    = get_current_blog_id();
     $search     = sanitize_text_field(wp_unslash($_POST['search']) ?? '');
-	
     
     if (!$search) {
         wp_die();
     }
+        // Καλούμε την κεντρική συνάρτηση αντί να γράφουμε SQL εδώ
+    lsah_save_search_query( $search, $blog_id );
 
-    $search_url = esc_url_raw($_POST['search_url'] ?? '');
-    $now = current_time('mysql');
+    wp_die();
+}
+add_action('wp_ajax_lsah_log_admin_help_search', 'lsah_log_admin_help_search');
 
-    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is escaped via constant.
+
+
+/**
+ * Core function to save or update search queries in the custom database table.
+ *
+ * This function handles the logging logic, including de-duplication checks,
+ * minimum length validation, and updating counts for existing terms.
+ *
+ * @since 1.1.0
+ *
+ * @param string $search  The search term to be logged.
+ * @param int    $blog_id The ID of the blog where the search originated.
+ * @return void
+ */
+function lsah_save_search_query( $search, $blog_id ) {
+    global $wpdb;
+
+   // Minimum length validation (multibyte supported).
+   if ( mb_strlen( $search ) < 4 ) { 
+	return;
+    }
+    
+    /** * Use base_prefix to ensure the table is treated as a network-wide global table 
+     * in multisite environments.
+     */
+     $table_name = $wpdb->base_prefix . LSAH_TABLE_SEARCHES;
+     $now        = current_time( 'mysql' );
+     
+    /**DE-DUPLICATION
+     * Check if the same term was logged very recently (within 5 seconds).
+     * This prevents duplicate logs from redirects or rapid page refreshes.
+     */
+    $is_duplicate = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT id FROM $table_name 
+             WHERE search_term = %s 
+             AND last_searched > DATE_SUB(%s, INTERVAL 5 SECOND)
+             ORDER BY id DESC LIMIT 1",
+            $search,
+            $now
+        )
+    );
+    if ( $is_duplicate ) {
+        return;
+    }
+    $search_url = get_option( LSAH_OPTION_ACTION_URL ) . urlencode( $search );
+      
+    // Check if the term already exists for this specific blog.
     $row = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT id, search_count FROM $table_name WHERE blog_id = %d AND search_term = %s",
@@ -253,36 +302,36 @@ function lsah_log_admin_help_search() {
         )
     );
 
-    if ($row) {
-       $wpdb->update(
-	    $table_name,
-	    [
-		'search_count'  => $row->search_count + 1,
-		'last_searched' => $now,
-		'search_url'    => $search_url,
-	    ],
-	    ['id' => $row->id],
-	    ['%d', '%s', '%s'],
-	    ['%d']
-	);
+    if ( $row ) {
+        // Update existing record: increment counter and update timestamp/URL.
+        $wpdb->update(
+            $table_name,
+            [
+                'search_count'  => $row->search_count + 1,
+                'last_searched' => $now,
+                'search_url'    => $search_url,
+            ],
+            ['id' => $row->id],
+            ['%d', '%s', '%s'],
+            ['%d']
+        );
     } else {
-       $wpdb->insert(
-    $table_name,
-    [
-        'blog_id'        => $blog_id,
-        'search_term'    => $search,
-        'search_url'     => $search_url,
-        'search_count'   => 1,
-        'first_searched' => $now,
-        'last_searched'  => $now,
-    ],
-    ['%d', '%s', '%s', '%d', '%s', '%s']
-);
+        // Αν δεν υπάρχει, δημιουργούμε νέα εγγραφή
+        $wpdb->insert(
+            $table_name,
+            [
+                'blog_id'        => $blog_id,
+                'search_term'    => $search,
+                'search_url'     => $search_url,
+                'search_count'   => 1,
+                'first_searched' => $now,
+                'last_searched'  => $now,
+            ],
+            ['%d', '%s', '%s', '%d', '%s', '%s']
+        );
     }
-
-    wp_die();
 }
-add_action('wp_ajax_lsah_log_admin_help_search', 'lsah_log_admin_help_search');
+
 
 /**
  * ------------------------------------------------------------------------
@@ -533,6 +582,56 @@ function lsah_render_statistics_page() {
     </div>
     <?php
 }
+
+
+/**
+ * Tracks and logs search queries performed directly on the manual's frontend.
+ * This function hooks into 'template_redirect' to intercept frontend searches.
+ * It validates if the current site matches the designated Manual URL and ensures
+ * the search term meets the required criteria before logging it to the database.
+ * 
+ * @since 1.1.0
+ * @return void
+ */
+function lsah_track_manual_searches() {
+    // 1. Primary check: Exit early if this is not a search results page.
+    if ( ! is_search() ) {
+        return;
+    }
+    $search_query = sanitize_text_field(wp_unslash(get_search_query()) ?? '');
+    
+    // Fail early if the search term is too short.
+    if ( mb_strlen( $search_query ) < 4 ) { 
+	return;
+    }
+
+    // 2. Ensure the option constant is defined before proceeding.
+    if ( ! defined( 'LSAH_OPTION_ACTION_URL' ) ) {
+        return;
+    }
+	
+    // 3. Retrieve the saved Manual URL from site options.
+    $raw_action_url = get_site_option(LSAH_OPTION_ACTION_URL);
+    if (! $raw_action_url){
+	return;
+    }
+    /**
+     * Normalize URLs for comparison.
+     * We strip query strings and ensure trailing slashes for consistency.
+     */
+    $manual_url = trailingslashit( strtok( $raw_action_url, '?' ) );
+    $current_home_url = trailingslashit( home_url() );
+
+    // 4. Verify if the current site is indeed the designated Manual site.
+    if ( $current_home_url !== $manual_url ) {
+        return;
+    }
+
+// 5. If all checks pass, record the search query.
+    lsah_save_search_query( $search_query, get_current_blog_id() );
+
+}
+add_action( 'template_redirect', 'lsah_track_manual_searches' );
 
 
 /***/
