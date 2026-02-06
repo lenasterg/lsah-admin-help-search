@@ -1,0 +1,162 @@
+# Copyright (C) 2026 LS
+# This file is distributed under the same license as the LSAH Admin Help Search (Multisite) plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: LSAH Admin Help Search (Multisite) 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/lsah-admin-help-"
+"search\n"
+"POT-Creation-Date: 2026-02-06T14:34:08+02:00\n"
+"PO-Revision-Date: 2026-02-06 14:36+0200\n"
+"Last-Translator: Lena Stergatou <aqua6617@yahoo.com>\n"
+"Language-Team: \n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+"X-Domain: lsah-admin-help-search\n"
+
+#. Plugin Name of the plugin
+#: lsah-admin-help-search.php
+msgid "LSAH Admin Help Search (Multisite)"
+msgstr "LSAH Admin Help Search (Multisite)"
+
+#. Description of the plugin
+#: lsah-admin-help-search.php
+msgid ""
+"Adds a search field within the WordPress dashboard for instant access to "
+"user manuals and logs queries to help administrators improve documentation. "
+"Fully multisite compatible."
+msgstr ""
+"Προσθέτει ένα πεδίο αναζήτησης στον πίνακα ελέγχου του WordPress για άμεση "
+"πρόσβαση σε εγχειρίδια χρήστη και καταγράφει ερωτήματα για να βοηθήσει τους "
+"διαχειριστές να βελτιώσουν την τεκμηρίωση. Πλήρως συμβατό με multisite."
+
+#. Author of the plugin
+#: lsah-admin-help-search.php
+msgid "lenasterg"
+msgstr "lenasterg"
+
+#. translators: %s: Settings page URL
+#: lsah-admin-help-search.php:115
+msgid "Settings → Help Search"
+msgstr "Ρυθμίσεις → Αναζήτηση Bοήθειας"
+
+#. translators: %1$s: message text, %2$s: link
+#: lsah-admin-help-search.php:118
+msgid "LSAH: Please configure the Help Search Action URL in %1$s."
+msgstr ""
+"LSAH: Παρακαλούμε ρυθμίστε το Action URL της Αναζήτησης Βοήθειας στις %1$s."
+
+#: lsah-admin-help-search.php:157 lsah-admin-help-search.php:351
+#: lsah-admin-help-search.php:373
+msgid "Help Search"
+msgstr "Αναζήτηση Βοήθειας"
+
+#: lsah-admin-help-search.php:158 lsah-admin-help-search.php:194
+msgid "Help for..."
+msgstr "Βοήθεια για …"
+
+#: lsah-admin-help-search.php:195
+msgid "Search the help manual"
+msgstr "Αναζήτηση στο εγχειρίδιο χρήσης"
+
+#: lsah-admin-help-search.php:196
+msgid "Help Search URL not configured."
+msgstr "Το URL του συνδέσμου αναζήτησης βοήθειας δεν έχει οριστεί."
+
+#: lsah-admin-help-search.php:350 lsah-admin-help-search.php:372
+#: lsah-admin-help-search.php:431
+msgid "Help Search Settings"
+msgstr "Ρυθμίσεις Αναζήτησης Βοήθειας"
+
+#: lsah-admin-help-search.php:392 lsah-admin-help-search.php:396
+#: lsah-admin-help-search.php:732 lsah-admin-help-search.php:735
+msgid "You do not have sufficient permissions to access this page."
+msgstr "Δεν έχετε δικαιώματα πρόσβασης σε αυτή τη σελίδα."
+
+#: lsah-admin-help-search.php:404 lsah-admin-help-search.php:472
+msgid "Please enter a URL."
+msgstr "Παρακαλώ εισάγετε ένα URL."
+
+#: lsah-admin-help-search.php:408 lsah-admin-help-search.php:477
+msgid "The URL must start with http:// or https://."
+msgstr "Το URL πρέπει να αρχίζει με http:// ή https://."
+
+#: lsah-admin-help-search.php:411 lsah-admin-help-search.php:484
+msgid "Please enter a valid URL."
+msgstr "Παρακαλώ, δώστε μια έγκυρη διεύθυνση URL."
+
+#: lsah-admin-help-search.php:415
+msgid "Settings saved."
+msgstr "Οι ρυθμίσεις αποθηκεύτηκαν."
+
+#: lsah-admin-help-search.php:436
+msgid "Search Action URL"
+msgstr "URL αναζήτησης βοήθειας"
+
+#: lsah-admin-help-search.php:441
+msgid "Examples:"
+msgstr "Παραδείγματα:"
+
+#: lsah-admin-help-search.php:449
+msgid "Save Changes"
+msgstr "Αποθήκευση αλλαγών"
+
+#: lsah-admin-help-search.php:545
+#| msgid "Help Search Settings"
+msgid "LSAH Search Settings"
+msgstr "Ρυθμίσεις αναζήτησης βοήθειας"
+
+#: lsah-admin-help-search.php:548
+msgid "Hide help search field on this site"
+msgstr "Απόκρυψη πεδίου αναζήτησης βοήθειας σε αυτόν τον ιστότοπο"
+
+#: lsah-admin-help-search.php:708 lsah-admin-help-search.php:709
+#: lsah-admin-help-search.php:721 lsah-admin-help-search.php:722
+#: lsah-admin-help-search.php:746
+msgid "Help Search Statistics"
+msgstr "Στατιστικά αναζήτησης βοήθειας"
+
+#: lsah-admin-help-search.php:747
+msgid "Overview of all recorded help search terms."
+msgstr "Επισκόπηση καταγεγραμμένων όρων αναζήτησης βοήθειας."
+
+#: lsah-admin-help-search.php:751
+msgid "Search terms"
+msgstr "Όροι αναζήτησης"
+
+#: lsah-admin-help-search.php:781 lsah-admin-help-search.php:794
+msgid "Search Term"
+msgstr "Όρος αναζήτησης"
+
+#: lsah-admin-help-search.php:782
+msgid "Search Terms"
+msgstr "Όροι αναζήτησης"
+
+#: lsah-admin-help-search.php:795
+msgid "Count"
+msgstr "Πλήθος"
+
+#: lsah-admin-help-search.php:796
+msgid "First Searched"
+msgstr "Πρώτη αναζήτηση"
+
+#: lsah-admin-help-search.php:797
+msgid "Last Searched"
+msgstr "Τελευταία αναζήτηση"
+
+#: lsah-admin-help-search.php:802
+msgid "Site URL"
+msgstr "URL ιστοτόπου"
+
+#~ msgid ""
+#~ "Adds a quick help search box in the admin menu. Configurable search URL, "
+#~ "logs all searches, fully multisite-compatible."
+#~ msgstr ""
+#~ "Προσθέτει ένα πλαίσιο αναζήτησης βοήθειας στο μενού διαχείρισης (admin "
+#~ "menu). Ρυθμιζόμενο URL αναζήτησης, καταγραφή των αναζητήσεων πλήρως "
+#~ "συμβατό με multisite."
+
+#~ msgid "LS"
+#~ msgstr "LS"
