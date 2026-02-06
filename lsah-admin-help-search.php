@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: LSAH Admin Help Search (Multisite)
+ * Plugin Name: LSAH Admin Help Search
  * Description: Adds a search field within the WordPress dashboard for instant access to user manuals and logs queries to help administrators improve documentation. Fully multisite compatible.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: lenasterg
  * Text Domain: lsah-admin-help-search
  * License:           GPL-2.0-or-later
@@ -389,30 +389,30 @@ add_action('admin_menu', 'lsah_add_single_site_settings');
 function lsah_render_settings_page() {
     // Έλεγχος δικαιωμάτων ανάλογα με την εγκατάσταση
     if (is_multisite() && !current_user_can('manage_network')) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
+		wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'lsah-admin-help-search' ) );
     }
 
     if (!is_multisite() && !current_user_can('manage_options')) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
+        wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'lsah-admin-help-search' ) );
     }
     $messages_displayed = false;
 
     if (isset($_POST['lsah_save_settings']) && check_admin_referer('lsah_save_settings')) {
-        $raw_url = trim($_POST['lsah_action_url'] ?? '');
+        $raw_url = trim( sanitize_text_field(wp_unslash( $_POST['lsah_action_url'] ?? '' ) ) ) ;
 
         if (empty($raw_url)) {
-            add_settings_error('lsah_settings', 'url_empty', __('Please enter a URL.', 'lsah-admin-help-search'), 'error');
+            add_settings_error('lsah_settings', 'url_empty',  esc_html__('Please enter a URL.', 'lsah-admin-help-search'), 'error');
             $url = '';
         } else {
             if (!preg_match('#^https?://#i', $raw_url)) {
-                add_settings_error('lsah_settings', 'url_scheme', __('The URL must start with http:// or https://.', 'lsah-admin-help-search'), 'error');
+                add_settings_error('lsah_settings', 'url_scheme',  esc_html__('The URL must start with http:// or https://.', 'lsah-admin-help-search'), 'error');
                 $url = '';
             } elseif (filter_var($raw_url, FILTER_VALIDATE_URL) === false) {
-                add_settings_error('lsah_settings', 'url_invalid', __('Please enter a valid URL.', 'lsah-admin-help-search'), 'error');
+                add_settings_error('lsah_settings', 'url_invalid',  esc_html__('Please enter a valid URL.', 'lsah-admin-help-search'), 'error');
                 $url = '';
             } else {
                 $url = esc_url_raw($raw_url);
-                add_settings_error('lsah_settings', 'settings_updated', __('Settings saved.', 'lsah-admin-help-search'), 'updated');
+                add_settings_error('lsah_settings', 'settings_updated',  esc_html__('Settings saved.', 'lsah-admin-help-search'), 'updated');
             }
         }
 
@@ -446,7 +446,7 @@ function lsah_render_settings_page() {
                     </td>
                 </tr>
             </table>
-            <?php submit_button(__('Save Changes', 'lsah-admin-help-search'), 'primary', 'lsah_save_settings'); ?>
+            <?php submit_button( esc_html__('Save Changes', 'lsah-admin-help-search'), 'primary', 'lsah_save_settings'); ?>
         </form>
     </div>
 
@@ -522,67 +522,130 @@ function lsah_render_settings_page() {
     <?php
 }
 
+/**
+ * ------------------------------------------------------------------------
+ * Allow blog user to hide the help search field in the specific blog via the Screen options
+ * ------------------------------------------------------------------------
+**/
+/**
+ * Adds a checkbox to the "Screen Options" pull-down menu on all admin pages.
+ *
+ * @since 1.2.0
+ * @param string $status The current screen settings HTML.
+ * @param object $args   Screen settings arguments.
+ * @return string        Modified screen settings HTML.
+ */
+function lsah_add_screen_options_global($status, $args) {
+    
+    // Generate a unique meta key for the current subsite to allow site-specific preferences
+    $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
+    $hide_search = get_user_meta(get_current_user_id(), $meta_key, true);
+    
+    $output = '<fieldset class="metabox-prefs" style="padding: 10px 0;">';
+    $output .= '<legend><strong>' . esc_html__('LSAH Search Settings', 'lsah-admin-help-search') . '</strong></legend>';
+    $output .= '<label for="lsah_hide_search_check">';
+    $output .= '<input type="checkbox" id="lsah_hide_search_check" name="lsah_hide_search_check" value="1" ' . checked($hide_search, 1, false) . ' />';
+    $output .= ' ' . esc_html__('Hide help search field on this site', 'lsah-admin-help-search');
+    $output .= '</label></fieldset>';
+
+    return $status . $output;
+}
+add_filter('screen_settings', 'lsah_add_screen_options_global', 10, 2);
 
 
 /**
- * ------------------------------------------------------------------------
- * Statistics page
- * ------------------------------------------------------------------------
+ * Handles the AJAX request to save the user's search field visibility preference.
+ * If the user unchecks the box, the meta key is deleted to keep the database clean.
+ *
+ * @since 1.2.0
+ * @return void
  */
-function lsah_add_network_statistics_menu() {
-    add_submenu_page(
-        'settings.php',
-        __('Help Search Statistics', 'lsah-admin-help-search'),
-        __('Help Search Statistics', 'lsah-admin-help-search'),
-        'manage_network',
-        'lsah-help-search-statistics',
-        'lsah_render_statistics_page'
-    );
+function lsah_save_screen_option_callback() {
+    // Verify the security nonce to prevent CSRF attacks
+    check_ajax_referer('lsah_security_nonce', 'security');
+
+    // Check if the current user has permission to be in the admin area
+    if ( ! current_user_can('read') ) {
+        wp_send_json_error('Forbidden', 403);
+    }
+
+    $user_id = get_current_user_id();
+    $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
+    
+    // Check if the user wants to hide the field
+    $hide_requested = ( isset($_POST['hide']) && $_POST['hide'] === 'true' );
+    
+    if ( $hide_requested ) {
+        // Save the preference
+        update_user_meta($user_id, $meta_key, 1);
+        wp_send_json_success('Preference saved');
+    } else {
+        // If unchecking, delete the meta key entirely to save DB space
+        delete_user_meta($user_id, $meta_key);
+        wp_send_json_success('Preference deleted');
+    }
 }
-add_action('network_admin_menu', 'lsah_add_network_statistics_menu');
+add_action('wp_ajax_lsah_save_screen_option', 'lsah_save_screen_option_callback');
 
-function lsah_add_single_site_statistics_menu() {
-    if (is_multisite()) return;
-    add_submenu_page(
-        'options-general.php',
-        __('Help Search Statistics', 'lsah-admin-help-search'),
-        __('Help Search Statistics', 'lsah-admin-help-search'),
-        'manage_options',
-        'lsah-help-search-statistics',
-        'lsah_render_statistics_page'
-    );
-}
-add_action('admin_menu', 'lsah_add_single_site_statistics_menu');
-
-function lsah_render_statistics_page() {
-    if (is_multisite() && !current_user_can('manage_network')) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
-    }
-    if (!is_multisite() && !current_user_can('manage_options')) {
-        wp_die(__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
+/**
+ * Injects CSS to hide the search field immediately if preference is set.
+ * Also injects the jQuery logic to handle real-time toggling and AJAX saving.
+ *
+ * @since 1.2.0
+ * @return void
+ */
+function lsah_apply_visibility_global() {
+    $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
+    $hide_search = get_user_meta(get_current_user_id(), $meta_key, true);
+    
+    // The specific ID for the help search field container
+    $target_id = '#toplevel_page_lsah-admin-help-search';
+    
+    // 1. CSS: If the preference is set to hide, inject CSS immediately to prevent flickering
+    if ( $hide_search == 1 ) {
+        echo '<style id="lsah-toggle-style">' . esc_attr($target_id) . ' { display: none !important; }</style>';
     }
 
-    if (!class_exists('WP_List_Table')) {
-        require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-    }
-
-    $statistics_table = new LSAH_Search_Statistics_Table();
-    $statistics_table->prepare_items();
+    // 2. JS: Logic for the Screen Options checkbox interaction
     ?>
-    <div class="wrap">
-        <h1><?php esc_html_e('Help Search Statistics', 'lsah-admin-help-search'); ?></h1>
-        <p><?php esc_html_e('Overview of all recorded help search terms.', 'lsah-admin-help-search'); ?></p>
-        <form method="get">
-            <input type="hidden" name="page" value="lsah-help-search-statistics">
-            <?php
-            $statistics_table->search_box(__('Search terms', 'lsah-admin-help-search'), 'search_term');
-            $statistics_table->display();
-            ?>
-        </form>
-    </div>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var targetId = '<?php echo esc_js($target_id); ?>';
+
+            /**
+             * Using event delegation on 'change' because Screen Options content 
+             * can sometimes be re-rendered by WordPress or other plugins.
+             */
+            $(document).on('change', '#lsah_hide_search_check', function() {
+                var isChecked = $(this).is(':checked');
+                
+                // Real-time UI Toggle: add or remove the style element
+                if(isChecked) {
+                    if (!$('#lsah-toggle-style').length) {
+                        $('head').append('<style id="lsah-toggle-style">' + targetId + ' { display: none !important; }</style>');
+                    }
+                } else {
+                    $('#lsah-toggle-style').remove();
+                }
+
+                // Fire the AJAX request to save preference in user meta
+                $.post(ajaxurl, {
+                    action: 'lsah_save_screen_option',
+                    hide: isChecked,
+                    security: '<?php echo wp_create_nonce("lsah_security_nonce"); ?>'
+                });
+            });
+        });
+    </script>
     <?php
 }
+add_action('admin_head', 'lsah_apply_visibility_global');
 
+/**
+ * ------------------------------------------------------------------------
+ * Log search queries performed directly on the manual's frontend.
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * Tracks and logs search queries performed directly on the manual's frontend.
@@ -634,6 +697,67 @@ function lsah_track_manual_searches() {
 add_action( 'template_redirect', 'lsah_track_manual_searches' );
 
 
+/**
+ * ------------------------------------------------------------------------
+ * Statistics page
+ * ------------------------------------------------------------------------
+ */
+function lsah_add_network_statistics_menu() {
+    add_submenu_page(
+        'settings.php',
+         esc_html__('Help Search Statistics', 'lsah-admin-help-search'),
+         esc_html__('Help Search Statistics', 'lsah-admin-help-search'),
+        'manage_network',
+        'lsah-help-search-statistics',
+        'lsah_render_statistics_page'
+    );
+}
+add_action('network_admin_menu', 'lsah_add_network_statistics_menu');
+
+function lsah_add_single_site_statistics_menu() {
+    if (is_multisite()) return;
+    add_submenu_page(
+        'options-general.php',
+         esc_html__('Help Search Statistics', 'lsah-admin-help-search'),
+         esc_html__('Help Search Statistics', 'lsah-admin-help-search'),
+        'manage_options',
+        'lsah-help-search-statistics',
+        'lsah_render_statistics_page'
+    );
+}
+add_action('admin_menu', 'lsah_add_single_site_statistics_menu');
+
+function lsah_render_statistics_page() {
+    if (is_multisite() && !current_user_can('manage_network')) {
+        wp_die( esc_html__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
+    }
+    if (!is_multisite() && !current_user_can('manage_options')) {
+        wp_die( esc_html__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
+    }
+
+    if (!class_exists('WP_List_Table')) {
+        require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+    }
+
+    $statistics_table = new LSAH_Search_Statistics_Table();
+    $statistics_table->prepare_items();
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e('Help Search Statistics', 'lsah-admin-help-search'); ?></h1>
+        <p><?php esc_html_e('Overview of all recorded help search terms.', 'lsah-admin-help-search'); ?></p>
+        <form method="get">
+            <input type="hidden" name="page" value="lsah-help-search-statistics">
+            <?php
+            $statistics_table->search_box( esc_html__('Search terms', 'lsah-admin-help-search'), 'search_term');
+            $statistics_table->display();
+            ?>
+        </form>
+    </div>
+    <?php
+}
+
+
+
 /***/
 if (!class_exists('WP_List_Table')) {
     require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
@@ -654,8 +778,8 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
          */
         public function __construct() {
             parent::__construct([
-                'singular' => __('Search Term', 'lsah-admin-help-search'),
-                'plural'   => __('Search Terms', 'lsah-admin-help-search'),
+                'singular' =>  esc_html__('Search Term', 'lsah-admin-help-search'),
+                'plural'   =>  esc_html__('Search Terms', 'lsah-admin-help-search'),
                 'ajax'     => false,
             ]);
         }
@@ -667,16 +791,15 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
          */
         public function get_columns() {
             $columns = [
-                'search_term'    => __('Search Term', 'lsah-admin-help-search'),
-                'search_count'   => __('Count', 'lsah-admin-help-search'),
-                'first_searched' => __('First Searched', 'lsah-admin-help-search'),
-                'last_searched'  => __('Last Searched', 'lsah-admin-help-search'),
+                'search_term'    =>  esc_html__('Search Term', 'lsah-admin-help-search'),
+                'search_count'   =>  esc_html__('Count', 'lsah-admin-help-search'),
+                'first_searched' =>  esc_html__('First Searched', 'lsah-admin-help-search'),
+                'last_searched'  =>  esc_html__('Last Searched', 'lsah-admin-help-search'),
             ];
 
             // Σε multisite, προσθέτουμε στήλη για Site URL
             if (is_multisite()) {
-				$columns = array_slice( $columns, 0, 1 ) + ['blog_url' => __('Site URL', 'lsah-admin-help-search')]+ $columns;
-              //  $columns = ['blog_url' => __('Site URL', 'lsah-admin-help-search')] + $columns;
+				$columns = array_slice( $columns, 0, 1 ) + ['blog_url' =>  esc_html__('Site URL', 'lsah-admin-help-search')]+ $columns;
             }
 
             return $columns;
@@ -732,13 +855,9 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
             $offset       = ($current_page - 1) * $per_page;
 
             // Sorting
-            $orderby = isset($_REQUEST['orderby'])
-                ? sanitize_key($_REQUEST['orderby'])
-                : 'last_searched';
-
-            $order = (isset($_REQUEST['order']) && 'asc' === strtolower($_REQUEST['order']))
-                ? 'ASC'
-                : 'DESC';
+            $orderby = isset( $_REQUEST['orderby'] ) ? sanitize_sql_orderby( wp_unslash( $_REQUEST['orderby'] ) ) : 'last_searched';
+			
+            $order = ( isset( $_REQUEST['order'] ) && 'asc' === strtolower( wp_unslash( $_REQUEST['order'] ) ) )  ? 'ASC' : 'DESC';
 
             // Columns that physically exist in the database
             $db_sortable = [
@@ -869,7 +988,7 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
                     ));
 
                 case 'blog_url':
-                    // Μόνο για multisite
+                    // Only for multisite
                     // Note: Direct DB access avoided – using get_site_url() cache
                     if (is_multisite() && isset($item['blog_id'])) {
                         return esc_url(get_site_url($item['blog_id']));
