@@ -1,14 +1,14 @@
-=== LSAH Admin Help Search (Multisite) ===
+=== LSAH Admin Help Search ===
 Contributors: lenasterg
 Tags: admin, help, multisite, dashboard, documentation
 Requires at least: 5.5
-Tested up to: 6.9.1
-Stable tag: 1.1.0
+Tested up to: 6.9
+Stable tag: 1.2.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Adds a search field within the WordPress dashboard for instant access to user manuals and logs queries to help administrators improve documentation. Fully multisite compatible.
+Adds a search field in the admin menu  allowing administrators to quickly search your custom help documentation or knowledge base.
 
 == Description ==
 
@@ -16,6 +16,7 @@ Adds a search field within the WordPress dashboard for instant access to user ma
 
 **Key Features:**
 * **Embedded Dashboard Search:** Adds a search box directly to the admin sidebar for seamless access to help articles.
+* **User can hide the help search field, via the Screen Options.
 * **Integrated Manual Tracking:** Since version 1.1. Now captures search queries performed directly on the frontend of the site designated as the User Manual (when hosted within the same multisite network).
 * **Smart De-duplication:** Features an intelligent mechanism to prevent double entries caused by redirects from the dashboard or page refreshes, using a 5-second "look-back" window.
 * **Data Integrity & Security:** High-level sanitization of search terms and use of prepared SQL statements to ensure database security.
@@ -49,7 +50,7 @@ Searches are stored in a network-wide table named `{prefix}lsah_admin_searches` 
 
 = Can I view search statistics? =
 
-Yes! Go to **Network Admin → Settings → Help Search Statistics** (or **Settings → Help Search Statistics** on single-site). The page includes a searchable and sortable table of all recorded searches.
+Yes if you are the website superadmin (or in a single-site installation the administrator). Go to **Network Admin → Settings → Help Search Statistics** (or **Settings → Help Search Statistics** on single-site). The page includes a searchable and sortable table of all recorded searches.
 
 = Is it secure? =
 
@@ -66,6 +67,11 @@ Yes. The plugin includes:
 3. The Help Search Statistics page showing recorded searches.
 
 == Changelog ==
+= 1.2.0 =
+* Updated plugin name and version, improved permission checks
+* Added functionality for subsite member to hide the help search field, via the Screen Options.
+* Enhanced user feedback messages and AJAX handling for user preferences.
+
 = 1.1.0 =
 * NEW: Added tracking for searches performed directly on the manual's frontend (if in same multisite).
 * IMPROVEMENT: Implemented a smart de-duplication mechanism to filter out redundant logs from redirects.
