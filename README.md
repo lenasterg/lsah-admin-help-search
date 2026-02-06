@@ -16,7 +16,8 @@ Configurable search URL, full search term logging, and built-in statistics page.
 
 - Works on **all sites** in a multisite network and on single-site installations.
 - Configurable search action URL (set by Network Admin or site admin).
-- (New in v1.1): Captures search queries from both the WordPress Dashboard and directly from the frontend of your designated Manual/Help site (if in same multisite).
+- User can hide the help search field, via the Screen Options.
+- Captures search queries from both the WordPress Dashboard and directly from the frontend of your designated Manual/Help site (if in same multisite).
 - Logs every search in a network-wide database table (`{prefix}lsah_admin_searches`) including:
   - Site ID (`blog_id`)
   - Search term
@@ -74,6 +75,11 @@ I think so. It includes:
 - Full input sanitization and output escaping
 
 ## Changelog
+###1.2.0
+- Updated plugin name and version, improved permission checks
+- Added functionality for subsite member to hide the help search field, via the Screen Options.
+- Enhanced user feedback messages and AJAX handling for user preferences.
+
 ###1.1.0
 - NEW: Added tracking for searches performed directly on the manual's frontend.
 - IMPROVEMENT: Refactored core logging into a central function for consistency.
