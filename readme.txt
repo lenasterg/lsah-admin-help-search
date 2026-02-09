@@ -61,10 +61,11 @@ Yes. The plugin includes:
 - Full sanitization and escaping of all inputs and outputs
 
 == Screenshots ==
+1. The Help Search settings page in Network Admin.
+2. The Help search box in the admin menu.
+3. The option to hide the Helpd search box via the Screen Options.
+4. The Help Search Statistics page showing recorded searches.
 
-1. The search box in the admin menu.
-2. The Help Search settings page in Network Admin.
-3. The Help Search Statistics page showing recorded searches.
 
 == Changelog ==
 = 1.2.1 =
