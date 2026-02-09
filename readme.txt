@@ -3,7 +3,7 @@ Contributors: lenasterg
 Tags: admin, help, multisite, dashboard, documentation
 Requires at least: 5.5
 Tested up to: 6.9
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -67,6 +67,13 @@ Yes. The plugin includes:
 3. The Help Search Statistics page showing recorded searches.
 
 == Changelog ==
+= 1.2.1 =
+* Enhancemet: Add settings and statistics links under plugin's name in plugins page.
+* Fix: Prevented screen options from appearing in the Network Admin context.
+* Documentation: Added missing phpDoc in some function
+* Refactor: Optimized to load only in the appropriate admin context.
+
+
 = 1.2.0 =
 * Updated plugin name and version, improved permission checks
 * Added functionality for subsite member to hide the help search field, via the Screen Options.
