@@ -47,14 +47,16 @@ The "Help for…" search box will appear in the admin menu for all administrator
 
 ## Screenshots
 
-1. The search box in the admin menu  
-   ![Search box in admin menu](screenshot-1.png)
+1. Settings page in Network Admin  
+   ![Settings page](screenshot-1.png)
+   
+2. The Help search box in the admin menu  
+   ![Help Search box in admin menu](screenshot-2.png)
 
-2. Settings page in Network Admin  
-   ![Settings page](screenshot-2.png)
+3. The option to hide the Help search box via the 'Screen Options'. ![option to hide the Help search box via the Screen Options](screenshot-3.png)
 
-3. Statistics page with recorded searches  
-   ![Statistics page](screenshot-3.png)
+4. Statistics page with recorded searches  
+   ![Statistics page](screenshot-4.png)
 
 ## Frequently Asked Questions
 
@@ -75,12 +77,18 @@ I think so. It includes:
 - Full input sanitization and output escaping
 
 ## Changelog
-###1.2.0
+### 1.2.1
+- Enhancement: Add settings and statistics links under plugin's name in plugins page.
+- Fix: Prevented screen options from appearing in the Network Admin context.
+- Documentation: Added missing phpDoc in some function
+- Refactor: Optimized to load only in the appropriate admin context.
+  
+### 1.2.0
 - Updated plugin name and version, improved permission checks
 - Added functionality for subsite member to hide the help search field, via the Screen Options.
 - Enhanced user feedback messages and AJAX handling for user preferences.
 
-###1.1.0
+### 1.1.0
 - NEW: Added tracking for searches performed directly on the manual's frontend.
 - IMPROVEMENT: Refactored core logging into a central function for consistency.
 - IMPROVEMENT: Implemented a smart de-duplication mechanism (5-second window).
