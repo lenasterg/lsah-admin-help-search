@@ -2,8 +2,9 @@
 /**
  * Plugin Name: LSAH Admin Help Search
  * Description: Adds a search field within the WordPress dashboard for instant access to user manuals and logs queries to help administrators improve documentation. Fully multisite compatible.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: lenasterg
+ * Author URI:        https://lenasterg.wordpress.com
  * Text Domain: lsah-admin-help-search
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -75,6 +76,50 @@ function lsah_activate_plugin() {
 register_activation_hook(__FILE__, 'lsah_activate_plugin');
 
 /**
+ * Add a "Settings" link to the plugin action links.
+ *
+ * @param array $links Existing action links.
+ * @return array Modified action links.
+ * 
+ * @version 1.0
+ * @since 1.2.1
+ */
+function lsah_add_plugin_action_links($links) {
+	if (is_multisite() && !is_network_admin()) {
+        return $links;
+    }
+    // Determine the correct settings URL based on Multisite status
+  if (is_multisite()) {
+        $settings_url   = network_admin_url('settings.php?page=lsah-help-search-settings');
+        $statistics_url = network_admin_url('settings.php?page=lsah-help-search-statistics');
+    } else {
+        $settings_url   = admin_url('options-general.php?page=lsah-help-search-settings');
+        $statistics_url = admin_url('options-general.php?page=lsah-help-search-statistics');
+    }
+
+    $action_links = array(
+        'settings'   => '<a href="' . esc_url($settings_url) . '">' . esc_html__('Settings', 'lsah-admin-help-search') . '</a>',
+        'statistics' => '<a href="' . esc_url($statistics_url) . '">' . esc_html__('Statistics', 'lsah-admin-help-search') . '</a>',
+    );
+
+    // Add the link to the beginning of the array
+    return array_merge($action_links, $links);
+    
+    
+    
+    return $links;
+}
+
+// For single site 
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'lsah_add_plugin_action_links');
+
+// Network Activated in multisite
+add_filter('network_admin_plugin_action_links_' . plugin_basename(__FILE__), 'lsah_add_plugin_action_links');
+
+
+
+
+/**
  * ------------------------------------------------------------------------
  * Admin notice for superadmin to set help URL
  * ------------------------------------------------------------------------
@@ -143,9 +188,14 @@ if (is_multisite()) {
  * Only adds the menu if the action URL is configured.
  *
  * @since 1.0
+ *
+ * @version 2.0, don't run in network admin pages
  * @return void
  */
 function lsah_add_admin_menu() {
+	if ( is_network_admin() ) {
+         wp_die();
+    }
     $action_url = get_site_option(LSAH_OPTION_ACTION_URL);
 
     // Μην προσθέτουμε το menu αν δεν έχει ρυθμιστεί URL
@@ -221,9 +271,11 @@ add_action('admin_enqueue_scripts', 'lsah_admin_assets');
  ** Intercepts and logs search requests originating from the WordPress Admin sidebar.
  * This function monitors the admin-side search form. When a user submits a 
  * "Help for..." query, it sanitizes the input, records the search via  lsah_save_search_query().
- * * @since 1.0.0
- * @version 1.1.0 Refactored to use the central lsah_save_search_query() function.
- * * @return void
+ * 
+ * @since 1.0.0
+ * @version 2.0, Don't run in network admin pages
+ * 1.1.0 Refactored to use the central lsah_save_search_query() function.
+ * @return void
  * 
  * @global wpdb $wpdb
  */
@@ -231,6 +283,7 @@ function lsah_log_admin_help_search() {
     if (!is_user_logged_in()) {
         wp_die();
     }
+	
     check_ajax_referer('lsah_log_admin_help_search', 'security', true);
 
     $blog_id    = get_current_blog_id();
@@ -265,8 +318,8 @@ function lsah_save_search_query( $search, $blog_id ) {
 
    // Minimum length validation (multibyte supported).
    if ( mb_strlen( $search ) < 4 ) { 
-	return;
-    }
+       return;
+   }
     
     /** * Use base_prefix to ensure the table is treated as a network-wide global table 
      * in multisite environments.
@@ -338,6 +391,7 @@ function lsah_save_search_query( $search, $blog_id ) {
  * Network Admin – Settings
  * ------------------------------------------------------------------------
  */
+
 
 /**
  * Adds the Help Search settings page to the network admin menu.
@@ -534,9 +588,13 @@ function lsah_render_settings_page() {
  * @param string $status The current screen settings HTML.
  * @param object $args   Screen settings arguments.
  * @return string        Modified screen settings HTML.
+ * 
+ * @version 2.0, don't display it to network admin pages
  */
 function lsah_add_screen_options_global($status, $args) {
-    
+    if ( is_network_admin() ) {
+        return $status;
+    }
     // Generate a unique meta key for the current subsite to allow site-specific preferences
     $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
     $hide_search = get_user_meta(get_current_user_id(), $meta_key, true);
@@ -558,9 +616,15 @@ add_filter('screen_settings', 'lsah_add_screen_options_global', 10, 2);
  * If the user unchecks the box, the meta key is deleted to keep the database clean.
  *
  * @since 1.2.0
+ * 
+ * @version 2.0, don't run it to network admin pages 
  * @return void
  */
 function lsah_save_screen_option_callback() {
+	
+	if ( is_network_admin() ) {
+        return;
+    }
     // Verify the security nonce to prevent CSRF attacks
     check_ajax_referer('lsah_security_nonce', 'security');
 
@@ -592,9 +656,14 @@ add_action('wp_ajax_lsah_save_screen_option', 'lsah_save_screen_option_callback'
  * Also injects the jQuery logic to handle real-time toggling and AJAX saving.
  *
  * @since 1.2.0
+ *
+ * @version 2.0, don't run it to network admin pages 
  * @return void
  */
 function lsah_apply_visibility_global() {
+	if ( is_network_admin() ) {
+        return;
+    }
     $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
     $hide_search = get_user_meta(get_current_user_id(), $meta_key, true);
     
@@ -632,7 +701,7 @@ function lsah_apply_visibility_global() {
                 $.post(ajaxurl, {
                     action: 'lsah_save_screen_option',
                     hide: isChecked,
-                    security: '<?php echo wp_create_nonce("lsah_security_nonce"); ?>'
+                    security: '<?php echo esc_js(wp_create_nonce("lsah_security_nonce")); ?>'
                 });
             });
         });
@@ -702,6 +771,18 @@ add_action( 'template_redirect', 'lsah_track_manual_searches' );
  * Statistics page
  * ------------------------------------------------------------------------
  */
+ 
+/**
+ * Registers a submenu page for Help Search Statistics in the Network Admin dashboard.
+ *
+ * This function adds a statistics page specifically for the Multisite Network 
+ * administration area, located under the "Settings" menu. It allows Super Admins 
+ * to view aggregated search data across the entire network.
+ *
+ * @since 1.0.0
+ * @see add_submenu_page()
+ * @return void
+ */
 function lsah_add_network_statistics_menu() {
     add_submenu_page(
         'settings.php',
@@ -714,8 +795,22 @@ function lsah_add_network_statistics_menu() {
 }
 add_action('network_admin_menu', 'lsah_add_network_statistics_menu');
 
+/**
+ * For single site installation: Registers a submenu page for Help Search Statistics under the Settings menu.
+ *
+ * This menu item is only registered for single-site installations. 
+ * If the site is part of a Multisite network, the function returns early 
+ * to prevent the menu from appearing.
+ *
+ * @since 1.0.0
+ * @see add_submenu_page()
+ *
+ * @return void
+ */
 function lsah_add_single_site_statistics_menu() {
-    if (is_multisite()) return;
+    if (is_multisite()) {
+		return;
+	}
     add_submenu_page(
         'options-general.php',
          esc_html__('Help Search Statistics', 'lsah-admin-help-search'),
@@ -727,6 +822,18 @@ function lsah_add_single_site_statistics_menu() {
 }
 add_action('admin_menu', 'lsah_add_single_site_statistics_menu');
 
+/**
+ * Renders the Help Search Statistics page content.
+ *
+ * This function handles the security checks for both single-site and multisite
+ * environments, ensures the WP_List_Table class is loaded, and initializes 
+ * the custom statistics table to display search data.
+ *
+ * @since 1.0.0
+ * @see LSAH_Search_Statistics_Table
+ * @see WP_List_Table
+ * @return void
+ */
 function lsah_render_statistics_page() {
     if (is_multisite() && !current_user_can('manage_network')) {
         wp_die( esc_html__('You do not have sufficient permissions to access this page.', 'lsah-admin-help-search'));
@@ -764,13 +871,20 @@ if (!class_exists('WP_List_Table')) {
 }
 if (!class_exists('LSAH_Search_Statistics_Table')) {
 
-    /**
-     * Class LSAH_Search_Statistics_Table
-     *
-     * Displays admin help search statistics in a WP_List_Table.
-     * Shows Search Term, Count, First & Last Searched.
-     * On multisite, also shows the Site URL.
-     */
+/**
+ * Custom List Table class to display Help Search Statistics.
+ *
+ * This class extends the native WordPress WP_List_Table to provide a 
+ * standard admin interface for viewing, searching, and managing 
+ * help search data recorded by the plugin.
+ *
+ * It shows Search Term, Count, First & Last Searched.
+ * On multisite, also shows the Site URL.
+ *
+ * @since 1.0.0
+ * @package LSAH_Admin_Help_Search
+ * @see WP_List_Table
+ */
     class LSAH_Search_Statistics_Table extends WP_List_Table {
 
         /**
