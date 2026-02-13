@@ -221,6 +221,8 @@ add_action('admin_menu', 'lsah_add_admin_menu');
  * Only loads if the action URL has been configured.
  *
  * @return void
+ *
+ * @version 2.0, 11/2/2026  
  */
 function lsah_admin_assets() {
     $action_url = get_site_option(LSAH_OPTION_ACTION_URL);
@@ -228,15 +230,22 @@ function lsah_admin_assets() {
     if (!$action_url) {
         return;
     }
-
+	//Pointer Styles
+    wp_enqueue_style('wp-pointer');
+	wp_enqueue_script('wp-pointer');
+	
     // Enqueue CSS
     wp_enqueue_style(
         'lsah-admin-search',
         plugin_dir_url(__FILE__) . 'assets/css/admin-search.css',
         array(),
-        '1.0.0'
+        time()
     );
-
+	
+	// Έλεγχος αν ο χρήστης έχει ήδη κλείσει το pointer
+    $dismissed = explode(',', (string) get_user_meta(get_current_user_id(), 'dismissed_wp_pointers', true));
+    $show_pointer = !in_array('lsah_intro_pointer', $dismissed); 
+	
     // Localize data for JavaScript
   $lsah_data = array(
     'actionUrl'     => esc_url($action_url),
@@ -244,20 +253,27 @@ function lsah_admin_assets() {
     'placeholder'   => esc_js(__('Help for...', 'lsah-admin-help-search')),
     'ariaLabel'     => esc_js(__('Search the help manual', 'lsah-admin-help-search')),
     'notConfigured' => esc_js(__('Help Search URL not configured.', 'lsah-admin-help-search')),
+	// Προσθήκη του showPointer (true ή false)
+    'showPointer'   => $show_pointer,
+	'pointerTitle'   => esc_js(__('New: Help Search', 'lsah-admin-help-search')),
+	'pointerContent'   => '<p><strong>' . esc_js(__('Search our documentation directly from here!','lsah-admin-help-search')) . '</strong><br><br>' . 
+                           esc_js(__('If this bothers you, you can hide this search box from the "Screen Options" tab, (in the top right of the screen).', 'lsah-admin-help-search')) . '<br>' . 
+                           esc_js(__('There, you can also choose if help should open in a new tab or at the right of the screen.', 'lsah-admin-help-search')).
+'</p>'						   
 );
-
+		
     // Enqueue JS
     wp_enqueue_script(
         'lsah-admin-search',
         plugin_dir_url(__FILE__) . 'assets/js/admin-search.js',
-        array(), // dependencies - π.χ. array('jquery') αν χρειαστεί
-        '1.0.0',
+        array('jquery', 'wp-pointer'),
+        time(),
         true // in footer
     );
 
     wp_localize_script('lsah-admin-search', 'lsahData', $lsah_data);
 }
-add_action('admin_enqueue_scripts', 'lsah_admin_assets');
+add_action('admin_enqueue_scripts', 'lsah_admin_assets',1000);
 
 /**
  * ------------------------------------------------------------------------
@@ -477,6 +493,10 @@ function lsah_render_settings_page() {
 
     $action_url = get_site_option(LSAH_OPTION_ACTION_URL, '');
 
+
+// Χρήση
+//echo can_it_iframe($action_url) ? "Επιτρέπεται" : "Απαγορεύεται";
+
     if ($messages_displayed) {
         settings_errors('lsah_settings');
     }
@@ -589,7 +609,8 @@ function lsah_render_settings_page() {
  * @param object $args   Screen settings arguments.
  * @return string        Modified screen settings HTML.
  * 
- * @version 2.0, don't display it to network admin pages
+ * @version 3.0, added an option to open the help in an iframe
+ * 2.0, don't display it to network admin pages
  */
 function lsah_add_screen_options_global($status, $args) {
     if ( is_network_admin() ) {
@@ -597,18 +618,33 @@ function lsah_add_screen_options_global($status, $args) {
     }
     // Generate a unique meta key for the current subsite to allow site-specific preferences
     $meta_key = 'lsah_hide_search_site_' . get_current_blog_id();
-    $hide_search = get_user_meta(get_current_user_id(), $meta_key, true);
+	$user_id = get_current_user_id();
+    
+	$hide_search = get_user_meta($user_id, $meta_key, true);
     
     $output = '<fieldset class="metabox-prefs" style="padding: 10px 0;">';
     $output .= '<legend><strong>' . esc_html__('LSAH Search Settings', 'lsah-admin-help-search') . '</strong></legend>';
     $output .= '<label for="lsah_hide_search_check">';
     $output .= '<input type="checkbox" id="lsah_hide_search_check" name="lsah_hide_search_check" value="1" ' . checked($hide_search, 1, false) . ' />';
     $output .= ' ' . esc_html__('Hide help search field on this site', 'lsah-admin-help-search');
-    $output .= '</label></fieldset>';
-
+    $output .= '</label>';
+	
+	/**
+	* Open the help in iframe
+	*
+	* @since 3.0
+	*/
+	
+    $checked = get_user_meta($user_id, 'lsah_use_side_panel', true) ? 'checked' : '';
+	$output .= '<label for="lsah_side_panel_trigger">';
+    $output .= '<input type="checkbox" id="lsah_side_panel_trigger" ' . $checked . ' /> ' . esc_html__('Open help results in a side panel', 'lsah-admin-help-search');
+    $output .= '</label>
+	</fieldset>';
+	
     return $status . $output;
 }
 add_filter('screen_settings', 'lsah_add_screen_options_global', 10, 2);
+
 
 
 /**
@@ -1114,4 +1150,72 @@ if (!class_exists('LSAH_Search_Statistics_Table')) {
             }
         }
     }
+}
+
+
+
+/**
+ * [2026-02-11]
+ * Handle the AJAX request to save user side-panel preference.
+ * Validates the request using the same nonce as the search logging.
+ */
+add_action('wp_ajax_lsah_save_user_pref', 'lsah_save_user_pref');
+function lsah_save_user_pref() {
+    // Χρησιμοποιούμε το nonce που ήδη έχεις ορίσει στο plugin για ασφάλεια
+    check_ajax_referer('lsah_log_admin_help_search', 'security');
+
+    if (current_user_can('read')) {
+        $value = isset($_POST['value']) ? intval($_POST['value']) : 0;
+        update_user_meta(get_current_user_id(), 'lsah_use_side_panel', $value);
+        wp_send_json_success();
+    }
+    wp_die();
+}
+
+/**
+ * [2026-02-11]
+ * Inject the side panel HTML structure and necessary CSS into the admin footer.
+ * Styled to match WordPress Admin UI.
+ */
+add_action('admin_footer', function() {
+    ?>
+    <div id="lsah-help-panel" aria-hidden="true">
+        <div class="lsah-panel-header">
+            <div class="lsah-panel-controls-left">
+                <span id="lsah-panel-title"><?php esc_html_e('Help Search Results','lsah-admin-help-search');?> </span>
+				<span id="lsah-panel-loading" style="display:none;">⏳ <?php  esc_html_e('Loading...', 'lsah'); ?></span>
+            </div>
+            <div class="lsah-panel-controls-right">
+                <button id="lsah-open-external" class="lsah-control-btn" title="<?php esc_attr_e('Open in new tab', 'lsah-admin-help-search'); ?>">
+                    <span class="dashicons dashicons-external"></span>
+                </button>
+                <button id="lsah-close-panel" class="lsah-control-btn btn-danger" title="<?php esc_attr_e('Close', 'lsah-admin-help-search'); ?>">
+                    <span class="dashicons dashicons-no-alt"></span>
+                </button>
+            </div>
+        </div>
+        <iframe id="lsah-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+    </div>
+    <?php
+});
+
+
+
+function can_it_iframe($url) {
+    $headers = get_headers($url, 1);
+    
+    if (isset($headers['X-Frame-Options'])) {
+        $xfo = strtoupper($headers['X-Frame-Options']);
+        if ($xfo === 'DENY' || $xfo === 'SAMEORIGIN') {
+            return false;
+        }
+    }
+
+    if (isset($headers['Content-Security-Policy'])) {
+        if (strpos($headers['Content-Security-Policy'], "frame-ancestors 'none'") !== false) {
+            return false;
+        }
+    }
+
+    return true;
 }
