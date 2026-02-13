@@ -2,6 +2,8 @@
     pointer-events: none;
     cursor: default;
 }
+.wp-pointer-left .wp-pointer-arrow {top: 15px}
+
 
 .lsah-admin-search-form {
     padding: 8px 10px;
@@ -20,4 +22,45 @@
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
+}
+
+
+
+#lsah-help-panel {
+	position: fixed; top: 32px; right: -500px;
+	width: 450px; height: calc(100vh - 32px);
+	background: #fff; z-index: 99999;
+	box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+	transition: right 0.3s ease-in-out; display: flex; flex-direction: column;
+	border-left: 1px solid #ccd0d4;
+}
+#lsah-help-panel.open { right: 0; }
+#lsah-panel-title {font-weight: 600; 
+color: #1d2327; 
+font-size: 120%;}
+
+.lsah-panel-header { 
+	padding: 5px 10px; background: #f6f7f7; border-bottom: 1px solid #ccd0d4; 
+	display: flex; justify-content: space-between; align-items: center; height: 45px;
+}
+.lsah-panel-controls-right { display: flex; gap: 6px; }
+
+/* [2026-02-11] Common Style for Control Buttons */
+.lsah-control-btn {
+	cursor: pointer; border: 1px solid #ccc; background: #fff;
+	color: #2271b1; border-radius: 3px; height: 32px; width: 36px;
+	display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.lsah-control-btn:hover { background: #f0f6fb; border-color: #2271b1; }
+.lsah-control-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
+
+/* Danger button (Close) */
+.lsah-control-btn.btn-danger { background: #d63638; border-color: #d63638; color: #fff; }
+.lsah-control-btn.btn-danger:hover { background: #b32d2e; border-color: #b32d2e; }
+
+#lsah-iframe { flex-grow: 1; border: none; width: 100%; }
+
+@media screen and (max-width: 782px) {
+	#lsah-help-panel { top: -100%; right: 0; width: 100%; height: 75vh; transition: top 0.3s; }
+	#lsah-help-panel.open { top: 32px; }
 }
